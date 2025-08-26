@@ -1,0 +1,3 @@
+AUGUST 26,2025
+ -make a product model
+ -make controllers and routes for creating product -- No need to include images for now

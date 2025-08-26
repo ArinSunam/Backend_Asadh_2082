@@ -75,21 +75,24 @@ const userLogin = async (req, res) => {
 
     const { access_token, refresh_token } = await generateAccessAndRefreshToken(user._id);
 
-    const loggedInUser = await User.findById(user._id).select("-password -refresh_token");
+    const loggedInUser = await User.findById(user._id).select("-password -refresh_token").lean();
     console.log("user", loggedInUser);
     const options = {
       httpOnly: true,
       secure: false,
     };
 
-    res.cookie("access_token", access_token, options).status(200).json({
-      message: "Loggedin successfully",
-      data: {
-        access_token,
-        refresh_token,
-        loggedInUser,
-      },
-    });
+    res
+      .cookie("access_token", access_token, options)
+      .status(200)
+      .json({
+        message: "Loggedin successfully",
+        data: {
+          access_token,
+          refresh_token,
+          ...loggedInUser,
+        },
+      });
   } catch (error) {
     res.status(500).json({
       message: error,
@@ -97,4 +100,26 @@ const userLogin = async (req, res) => {
   }
 };
 
-export { userRegister, userLogin };
+const logout = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user._id, {
+      $set: { refresh_token: undefined },
+    });
+
+    const options = {
+      httpOnly: true,
+      secure: false,
+    };
+
+    res.status(200).clearCookie("access_token", options).json({
+      message: "Loggedout successfully",
+    });
+  } catch (error) {
+    console.log("Error while logging out::", error);
+    res.status(500).json({
+      message: error,
+    });
+  }
+};
+
+export { userRegister, userLogin, logout };
