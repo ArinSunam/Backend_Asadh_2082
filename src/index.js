@@ -27,6 +27,7 @@ connectDB()
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(cookieParser());
+app.use("/api/public", express.static("public"));
 
 //routes
 app.use("/api/auth", authRoutes);

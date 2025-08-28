@@ -122,4 +122,20 @@ const logout = async (req, res) => {
   }
 };
 
-export { userRegister, userLogin, logout };
+const updateProfilePic = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { profile_pic: `/public/uploads/${req.file.filename}` },
+      { new: true }
+    ).select("-password -refresh_token");
+
+    res.status(200).json({ message: "Profile picture updated successfully", data: user });
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+};
+
+export { userRegister, userLogin, logout, updateProfilePic };
