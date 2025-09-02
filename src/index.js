@@ -4,6 +4,7 @@ import cors from "cors";
 import { connectDB } from "./db/index.js";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
+import productRoutes from "./routes/product.routes.js";
 
 dotenv.config();
 
@@ -31,3 +32,4 @@ app.use("/api/public", express.static("public"));
 
 //routes
 app.use("/api/auth", authRoutes);
+app.use("/api/product", productRoutes);

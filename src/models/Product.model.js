@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+const categories = ["Citrus Fruit", "Berries", "Tropical fruits"];
 const productSchema = new mongoose.Schema(
   {
     title: {
@@ -10,22 +11,29 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    stock: {
-      type: Number,
-      required: true,
-      default: 1,
+    image: {
+      type: String,
     },
     price: {
       type: Number,
       required: true,
     },
-
-    image: {
+    Categories: {
       type: String,
+      enum: categories,
+    },
+    rating: {
+      type: Number,
+    },
+    in_stock: {
+      type: Number,
       required: true,
+      default: 0,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 export const Product = mongoose.model("Product", productSchema);
