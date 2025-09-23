@@ -65,6 +65,8 @@ const fetchProducts = async (req, res) => {
       .skip((page - 1) * perPage)
       .limit(perPage);
 
+    const totalProducts = await Product.countDocuments(products);
+
     res.status(200).json({
       page: page,
       perPage: perPage,
@@ -88,12 +90,12 @@ const fetchSingleProduct = async (req, res) => {
       });
     }
     return res.status(200).json({
-      message: "product found",
+      message: "Product fetched successfully",
       data: product,
     });
   } catch (error) {
     res.status(500).json({
-      message: "could not fetch the product ",
+      message: error.message,
     });
   }
 };

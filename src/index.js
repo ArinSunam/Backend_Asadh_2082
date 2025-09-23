@@ -5,6 +5,7 @@ import { connectDB } from "./db/index.js";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
 import productRoutes from "./routes/product.routes.js";
+import orderRoutes from "./routes/order.routes.js";
 
 dotenv.config();
 
@@ -33,3 +34,4 @@ app.use("/api/public", express.static("public"));
 //routes
 app.use("/api/auth", authRoutes);
 app.use("/api/product", productRoutes);
+app.use("/api/order", orderRoutes);

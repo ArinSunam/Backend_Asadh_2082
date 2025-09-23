@@ -138,4 +138,67 @@ const updateProfilePic = async (req, res) => {
   }
 };
 
-export { userRegister, userLogin, logout, updateProfilePic };
+const changeCurrentPassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user?._id);
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+    if (!isPasswordCorrect) {
+      return res.status(400).json("Invalid password");
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//GET CURRENT USER
+const getCurrentUser = async (req, res) => {
+  try {
+    res.status(200).json({ message: "Current user fetched successfully", data: req.user });
+  } catch (error) {
+    console.log("error getting current user::", error.message);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//change user details
+const updateAccountDetails = async (req, res) => {
+  try {
+    const { fullname, email } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+        $set: {
+          fullname,
+          email,
+        },
+      },
+      {
+        new: true,
+      }
+    ).select("-password -refreshToken");
+
+    req.status(200).json({ data: user, message: "Account details updated succesfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export {
+  userRegister,
+  userLogin,
+  logout,
+  updateProfilePic,
+  changeCurrentPassword,
+  getCurrentUser,
+  updateAccountDetails,
+};
