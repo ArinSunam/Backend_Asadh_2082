@@ -100,4 +100,85 @@ const fetchSingleProduct = async (req, res) => {
   }
 };
 
-export { addProduct, fetchProducts, fetchSingleProduct };
+const searchProducts = async (req, res) => {
+  try {
+    const { q: query, category, minPrice, maxPrice, inStock, page = 1, limit = 20 } = req.query;
+
+    if (!query?.trim()) {
+      return res.status(400).json({
+        message: "Search query is required",
+        suggestions: ["Try specific product names", "Use fewer keywords"],
+      });
+    }
+
+    const searchConditions = {
+      $and: [{ $text: { $search: query.trim() } }],
+    };
+
+    if (category) {
+      searchConditions.$and.push({
+        Categories: category,
+      });
+    }
+
+    if (minPrice || maxPrice) {
+      searchConditions.$and.push({
+        price: {
+          ...(minPrice && { $gte: parseFloat(minPrice) }),
+          ...(maxPrice && { $lte: parseFloat(maxPrice) }),
+        },
+      });
+    }
+
+    if (inStock === "true") {
+      searchConditions.$and.push({ in_stock: { $gte: 0 } });
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [products, total] = await Promise.all([
+      Product.find(searchConditions, {
+        score: { $meta: "textScore" },
+        title: 1,
+        price: 1,
+        image: 1,
+        Categories: 1,
+        in_stock: 1,
+      })
+        .sort({ score: { $meta: "textScore" } })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      Product.countDocuments(searchConditions),
+    ]);
+
+    return res.status(200).json({
+      message: products.length ? "Search results found" : "No products found",
+      data: products,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit),
+      },
+      filters: {
+        applied: { category, minPrice, maxPrice, inStock },
+      },
+    });
+  } catch (error) {
+    console.error("Search error:", error);
+
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        message: "Invalid filter parameters",
+        details: "Check price ranges or category values",
+      });
+    }
+
+    res.status(500).json({
+      message: "Search temporarily unavailable",
+      retry: true,
+    });
+  }
+};
+
+export { addProduct, fetchProducts, fetchSingleProduct, searchProducts };

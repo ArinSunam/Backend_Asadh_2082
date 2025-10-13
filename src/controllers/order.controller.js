@@ -5,7 +5,7 @@ import { User } from "../models/User.model.js";
 const createOrder = async (req, res) => {
   try {
     const Admin = await User.findById(req.user._id);
-    console.log(Admin);
+
     if (Admin.isAdmin) {
       return res.status(403).json({
         message: "Forbidden request",
@@ -71,7 +71,7 @@ const getOrderByUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(401).json("Unauthorized request");
+      return res.status(404).json("User not found");
     }
     const orders = await Order.find({ created_by: req.user._id }).populate(
       "created_by",
@@ -92,4 +92,71 @@ const getOrderByUser = async (req, res) => {
   }
 };
 
-export { createOrder, getAllOrder, getOrderByUser };
+const updateOrderStatus = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) return res.status(403).json({ message: "Forbidden" });
+
+    const { status } = req.body;
+    const order = await Order.findByIdAndUpdate(req.params.orderId, { status }, { new: true });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    return res.status(200).json({
+      data: order,
+      message: `Order status updated to ${status}`,
+    });
+  } catch (error) {
+    console.log("Error updating order status", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId).populate("created_by", "fullname email");
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (!req.user.isAdmin && order.created_by._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    return res.status(200).json({ data: order });
+  } catch (error) {
+    console.log("Error fetching order by ID", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const cancelOrderByUser = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.created_by.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (order.status !== "PENDING") {
+      return res.status(400).json({ message: "Cannot cancel processed order" });
+    }
+
+    order.status = "REJECTED";
+    await order.save();
+
+    return res.status(200).json({ message: "Order cancelled successfully" });
+  } catch (error) {
+    console.log("Error cancelling order", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export {
+  createOrder,
+  getAllOrder,
+  getOrderByUser,
+  updateOrderStatus,
+  getOrderById,
+  cancelOrderByUser,
+};

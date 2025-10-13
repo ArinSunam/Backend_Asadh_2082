@@ -25,13 +25,6 @@ const orderSchema = new mongoose.Schema(
             min: 1,
             required: true,
           },
-
-          status: {
-            type: String,
-            enum: ["PENDING", "COMPLETED", "REJECTED"],
-            required: true,
-            default: "PENDING",
-          },
         },
       ],
       required: true,
@@ -45,6 +38,12 @@ const orderSchema = new mongoose.Schema(
     shipping_address: {
       type: String,
       required: true,
+    },
+    status: {
+      type: String,
+      enum: ["PENDING", "DELIVERED", "COMPLETED", "REJECTED"],
+      required: true,
+      default: "PENDING",
     },
     city: {
       type: String,
