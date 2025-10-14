@@ -1,6 +1,13 @@
 import Router from "express";
 import { VerifyToken } from "../middleware/auth.middleware.js";
-import { createOrder, getAllOrder, getOrderByUser } from "../controllers/order.controller.js";
+import {
+  cancelOrderByUser,
+  createOrder,
+  getAllOrder,
+  getOrderById,
+  getOrderByUser,
+  updateOrderStatus,
+} from "../controllers/order.controller.js";
 
 const router = Router();
 
