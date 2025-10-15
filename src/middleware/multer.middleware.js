@@ -7,6 +7,7 @@ const uploadPath = path.join(process.cwd(), "public/uploads");
 //   fs.mkdirSync(uploadPath, { recursive: true });
 // }
 
+//multer diskStorage to store in files in your system
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadPath);
