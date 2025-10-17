@@ -1,12 +1,10 @@
 import { Product } from "../models/Product.model.js";
 import { User } from "../models/User.model.js";
+import { uploadToCloudinary } from "../utils/cloudinaryUtils.js";
 
 const addProduct = async (req, res) => {
   try {
     const { title, description, price, in_stock, Categories, rating } = req.body;
-
-    console.log("req", req);
-    console.log("file", req.files);
 
     if (!req.file) {
       return res.status(400).json({
@@ -14,8 +12,8 @@ const addProduct = async (req, res) => {
       });
     }
 
-    const imagePath = `/public/uploads/${req.file.filename}`;
-
+    const uploadResult = await uploadToCloudinary(req.file.buffer, "products");
+    console.log("uploadResult", uploadResult);
     const Admin = await User.findById(req.user._id);
 
     if (!Admin.isAdmin) {
@@ -29,7 +27,8 @@ const addProduct = async (req, res) => {
       in_stock,
       Categories,
       rating,
-      image: imagePath,
+      image: uploadResult.secure_url,
+      imagePublicId: uploadResult.public_id,
     });
 
     if (!product) {
@@ -45,7 +44,7 @@ const addProduct = async (req, res) => {
   } catch (error) {
     console.log("Error while adding product", error);
     res.status(500).json({
-      message: error,
+      message: error.message,
     });
   }
 };

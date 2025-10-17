@@ -10,7 +10,7 @@ import { upload } from "../middleware/multer.middleware.js";
 
 const router = Router();
 
-router.route("/add-product").post(VerifyToken, upload.single("hrit"), addProduct);
+router.route("/add-product").post(VerifyToken, upload.single("image"), addProduct);
 router.route("/").get(fetchProducts);
 router.route("/search").get(searchProducts);
 router.route("/:id").get(fetchSingleProduct);
